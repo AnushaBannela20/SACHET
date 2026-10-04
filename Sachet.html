@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sachet – Investment Message Checker</title>
+<style>
+:root{--bg:#f6f4ee;--ink:#1b2a2f;--mute:#5a6b70;--card:#fff;--line:#d9d6cb;--hi:#b3261e;--mid:#a86400;--lo:#1f7a4d;--acc:#0e4d64;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a1d;--ink:#e8eef0;--mute:#9fb0b5;--card:#1b2629;--line:#33454a;--hi:#ff8a80;--mid:#ffc266;--lo:#6fd6a0;--acc:#7cc4dd}}
+:root[data-theme="dark"]{--bg:#121a1d;--ink:#e8eef0;--mute:#9fb0b5;--card:#1b2629;--line:#33454a;--hi:#ff8a80;--mid:#ffc266;--lo:#6fd6a0;--acc:#7cc4dd}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.55 "Noto Sans Devanagari","Segoe UI",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font:700 1.9rem/1.15 Georgia,"Noto Serif Devanagari",serif;margin:0;color:var(--acc)}
+.sub{color:var(--mute);margin:.3rem 0 1rem}
+button,select{font:inherit;border-radius:8px;border:1.5px solid var(--acc);background:transparent;color:var(--acc);padding:8px 14px;min-height:44px;cursor:pointer}
+button.p{background:var(--acc);color:var(--bg);font-weight:600}
+button:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--mid);outline-offset:2px}
+textarea{width:100%;min-height:150px;font:inherit;padding:12px;border-radius:10px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);resize:vertical}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+.note{font-size:.9rem;color:var(--mute);border-left:4px solid var(--acc);padding:4px 10px;margin:12px 0}
+#out{margin-top:18px}
+.verdict{border-radius:12px;padding:16px;border:2px solid;background:var(--card)}
+.verdict h2{margin:0 0 4px;font-size:1.35rem}
+.bar{height:12px;border-radius:6px;background:var(--line);overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%}
+.flag{background:var(--card);border:1px solid var(--line);border-left-width:6px;border-radius:8px;padding:10px 12px;margin:8px 0}
+.flag b{display:block}
+ul.steps{padding-left:20px}
+footer{margin-top:28px;font-size:.85rem;color:var(--mute)}
+a{color:var(--acc)}
+.sr{position:absolute;left:-9999px}
+@media(prefers-reduced-motion:no-preference){.bar i{transition:width .5s}}
+</style>
+</head>
+<body>
+<main>
+<header>
+ <h1 id="t">Sachet</h1>
+ <div class="row" style="margin:0">
+  <select id="lang" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option></select>
+ </div>
+</header>
+<p class="sub" id="sub"></p>
+<label for="msg" class="sr" id="lbl"></label>
+<textarea id="msg"></textarea>
+<div class="row">
+ <button class="p" id="go"></button>
+ <button id="mic"></button>
+ <button id="ex"></button>
+ <button id="clr"></button>
+</div>
+<div class="note" id="priv"></div>
+<section id="out" aria-live="polite"></section>
+<footer id="foot"></footer>
+</main>
+<script>
+// ---------- Text (English / Hindi) ----------
+const T={
+en:{sub:"Got a stock tip, WhatsApp/Telegram message or call script? Paste it. We look for known scam warning signs. We never tell you what to buy or sell.",
+ph:"Paste the message here…",go:"Check message",mic:"🎤 Speak",ex:"Try an example",clr:"Clear",
+priv:"Privacy: everything is checked inside your phone or browser. Nothing is uploaded, stored or shared. Please do not paste OTPs, passwords or card numbers.",
+low:"Few warning signs found",mid:"Some warning signs – be careful",high:"Strong scam warning signs",
+score:"Warning level",why:"Why we flagged this",next:"What to do now",
+unc:"This tool looks for patterns only. It cannot confirm whether a message is genuine or fake, and a low score does not mean it is safe. Always verify with official sources.",
+none:"No known warning patterns found. Still, verify the sender before acting.",
+listen:"🔊 Read aloud",empty:"Please paste or speak a message first.",nomic:"Voice input is not supported in this browser. Please type or paste instead.",
+steps:["Do not pay, share OTP, install an app or join a group because of this message.","Check if the person/firm is registered: <a href='https://www.sebi.gov.in/sebiweb/other/OtherAction.do?doRecognisedFpi=yes&intmId=13' target='_blank' rel='noopener'>SEBI registered intermediaries</a>.","Lost money or being pressured? Call <b>1930</b> or report at <a href='https://cybercrime.gov.in' target='_blank' rel='noopener'>cybercrime.gov.in</a> immediately.","Complain against a listed company or broker: <a href='https://scores.sebi.gov.in' target='_blank' rel='noopener'>SEBI SCORES</a>.","Show this message to a trusted family member before doing anything."],
+foot:"Sachet is an investor-protection prototype. No stock tips, no predictions, no ads, no commissions. Not legal or financial advice."},
+hi:{sub:"क्या आपको कोई शेयर टिप, WhatsApp/Telegram संदेश या कॉल स्क्रिप्ट मिली? यहाँ चिपकाएँ। हम ठगी के जाने-पहचाने संकेत जाँचते हैं। हम कभी नहीं बताते कि क्या खरीदें या बेचें।",
+ph:"संदेश यहाँ चिपकाएँ…",go:"संदेश जाँचें",mic:"🎤 बोलकर लिखें",ex:"उदाहरण देखें",clr:"साफ़ करें",
+priv:"गोपनीयता: जाँच आपके फ़ोन/ब्राउज़र में ही होती है। कुछ भी अपलोड, सेव या साझा नहीं होता। कृपया OTP, पासवर्ड या कार्ड नंबर न डालें।",
+low:"कम चेतावनी संकेत मिले",mid:"कुछ चेतावनी संकेत – सावधान रहें",high:"ठगी के प्रबल संकेत",
+score:"चेतावनी स्तर",why:"हमने इसे क्यों चिह्नित किया",next:"अब क्या करें",
+unc:"यह टूल केवल पैटर्न देखता है। यह पक्का नहीं बता सकता कि संदेश असली है या नकली; कम स्कोर का मतलब सुरक्षित होना नहीं है। हमेशा आधिकारिक स्रोत से पुष्टि करें।",
+none:"कोई ज्ञात चेतावनी पैटर्न नहीं मिला। फिर भी कार्रवाई से पहले भेजने वाले की पुष्टि करें।",
+listen:"🔊 सुनें",empty:"कृपया पहले संदेश चिपकाएँ या बोलें।",nomic:"इस ब्राउज़र में आवाज़ से इनपुट उपलब्ध नहीं है। कृपया टाइप या पेस्ट करें।",
+steps:["इस संदेश के कारण पैसे न भेजें, OTP न बताएँ, कोई ऐप इंस्टॉल न करें और ग्रुप में न जुड़ें।","जाँचें कि व्यक्ति/कंपनी पंजीकृत है: <a href='https://www.sebi.gov.in/sebiweb/other/OtherAction.do?doRecognisedFpi=yes&intmId=13' target='_blank' rel='noopener'>SEBI पंजीकृत मध्यस्थ</a>।","पैसे गए हों या दबाव हो? तुरंत <b>1930</b> पर कॉल करें या <a href='https://cybercrime.gov.in' target='_blank' rel='noopener'>cybercrime.gov.in</a> पर शिकायत करें।","लिस्टेड कंपनी या ब्रोकर की शिकायत: <a href='https://scores.sebi.gov.in' target='_blank' rel='noopener'>SEBI SCORES</a>।","कुछ भी करने से पहले यह संदेश किसी भरोसेमंद परिवारजन को दिखाएँ।"],
+foot:"Sachet, SANGYAN हैकथॉन के लिए निवेशक-सुरक्षा प्रोटोटाइप है। कोई स्टॉक टिप, भविष्यवाणी, विज्ञापन या कमीशन नहीं। यह कानूनी या वित्तीय सलाह नहीं है।"}};
+
+// ---------- Rule base (weight 1-4). Patterns cover English, Hindi and Hinglish ----------
+const R=[
+{w:4,re:/guarantee[d]?\s*(profit|return|income)|assured\s*(profit|return)|100\s*%\s*(profit|return|sure)|risk[\s-]*free|no\s*risk|पक्का\s*मुनाफ़?ा|गारंटी(ड)?\s*(रिटर्न|मुनाफ़?ा)|बिना\s*जोखिम|guaranteed\s*munafa|pakka\s*(profit|munafa)/i,
+ en:["Promises guaranteed or risk-free returns","No genuine investment can guarantee profit. SEBI-registered advisers are not allowed to promise returns."],hi:["गारंटीड या जोखिम-रहित मुनाफ़े का वादा","कोई भी असली निवेश मुनाफ़े की गारंटी नहीं दे सकता। SEBI-पंजीकृत सलाहकार रिटर्न का वादा नहीं कर सकते।"]},
+{w:3,re:/(\d{2,3})\s*%\s*(daily|weekly|monthly|per\s*(day|week|month)|रोज़?|हर\s*दिन|प्रति\s*माह)|double\s*(your\s*)?(money|investment)|पैसे?\s*(दुगुने|डबल)|(2|3|5|10)x\s*(return|in\s*\d+\s*(day|week|month))/i,
+ en:["Unrealistically high or fast returns","Returns like these are far beyond what regulated markets offer. This is a classic scheme pattern."],hi:["असंभव रूप से ऊँचा या तेज़ रिटर्न","ऐसे रिटर्न नियमित बाज़ार में संभव नहीं हैं। यह ठगी योजनाओं का जाना-पहचाना पैटर्न है।"]},
+{w:3,re:/(whats\s*app|telegram|signal|व्हाट्सएप|टेलीग्राम)[^.\n]{0,40}(group|channel|ग्रुप|चैनल)|join\s*(our|my|the)?\s*(vip|premium|private)?\s*(group|channel)|(vip|premium)\s*(group|tips|calls?)|ग्रुप\s*(में\s*)?जुड़ें/i,
+ en:["Pushes you to a private WhatsApp/Telegram group","Fake 'VIP' groups are a common way to run pump-and-dump and fake-trading-app scams."],hi:["निजी WhatsApp/Telegram ग्रुप में बुला रहा है","नकली 'VIP' ग्रुप, पंप-एंड-डंप और नकली ट्रेडिंग ऐप की ठगी का आम तरीका हैं।"]},
+{w:3,re:/\b(otp|pin|cvv|password|पासवर्ड|ओटीपी)\b[^.\n]{0,40}(share|send|bhej|बताएँ|बताइए|भेजें|दें)|(share|send|give)\s*(me\s*)?(your\s*)?(otp|pin|cvv|password)|anydesk|teamviewer|screen\s*share|remote\s*access/i,
+ en:["Asks for OTP, PIN, password or remote access","No genuine broker, SEBI or bank staff will ask for these. Sharing them lets criminals empty your accounts."],hi:["OTP, PIN, पासवर्ड या रिमोट एक्सेस माँगा जा रहा है","कोई असली ब्रोकर, SEBI या बैंक कर्मचारी ये नहीं माँगता। इन्हें बताने से खाता खाली हो सकता है।"]},
+{w:3,re:/\.apk\b|download\s*(our|this|the)?\s*(app|apk)|install\s*(our|this|the)?\s*(app|apk)|ऐप\s*(डाउनलोड|इंस्टॉल)|app\s*download\s*karo|trading\s*app\s*link/i,
+ en:["Asks you to install an app from a link or APK","Fake trading apps show fake profits and block withdrawals. Install apps only from official stores of known, registered firms."],hi:["लिंक या APK से ऐप इंस्टॉल करने को कह रहा है","नकली ट्रेडिंग ऐप झूठा मुनाफ़ा दिखाते हैं और पैसे निकालने नहीं देते। केवल पंजीकृत कंपनियों के आधिकारिक स्टोर से ऐप लें।"]},
+{w:2,re:/(act|invest|buy|join|pay|register)\s*(now|today|immediately|fast)|last\s*(chance|day|few\s*seats)|limited\s*(time|slots|seats|offer)|hurry|urgent|only\s*\d+\s*(slots|seats|hours)|आज\s*ही|अभी\s*(निवेश|जुड़ें|खरीदें)|आख़िरी\s*मौक़ा|सीमित\s*(समय|सीट)|jaldi/i,
+ en:["Creates urgency or fear of missing out","Scammers rush you so you cannot think or check with others."],hi:["जल्दबाज़ी या छूट जाने का डर पैदा कर रहा है","ठग आपको जल्दी में डालते हैं ताकि आप सोच या किसी से पूछ न सकें।"]},
+{w:3,re:/(sure[\s-]*shot|sureshot|jackpot|multibagger\s*(tip|call)|insider\s*(tip|info)|operator\s*(call|tip)|fixed\s*(match|tip)|target\s*₹?\s*\d+|stop\s*loss\s*₹?\s*\d+|buy\s*(above|below|at)\s*₹?\s*\d+|पक्की\s*टिप|इनसाइडर)/i,
+ en:["Looks like a specific buy/target tip or 'insider' call","Unregistered tips with targets are a common hook. This tool never gives such tips and you should not act on them."],hi:["खरीदने/टार्गेट वाली टिप या 'इनसाइडर' कॉल जैसा लगता है","बिना पंजीकरण वाली टार्गेट टिप ठगों का आम जाल है। यह टूल ऐसी टिप नहीं देता; आप भी इन पर अमल न करें।"]},
+{w:2,re:/sebi\s*(registered|approved|certified|authori[sz]ed)|सेबी\s*(पंजीकृत|मान्य|अनुमोदित)|nse\s*(approved|certified)|bse\s*(approved|certified)|rbi\s*approved/i,
+ en:["Claims SEBI/NSE/RBI approval","Scammers often borrow regulator names. Verify the registration number yourself on the official SEBI site; never trust a number or link sent in the message."],hi:["SEBI/NSE/RBI की मंज़ूरी का दावा","ठग अक्सर नियामक का नाम इस्तेमाल करते हैं। पंजीकरण नंबर SEBI की आधिकारिक साइट पर ख़ुद जाँचें; संदेश में दिए नंबर/लिंक पर भरोसा न करें।"]},
+{w:3,re:/(ipo|allotment|आईपीओ)[^.\n]{0,60}(guarantee|sure|confirm|pakka|पक्का|गारंटी)|institutional\s*(account|client|quota)|fii\s*(account|quota)|block\s*deal\s*(offer|tip)|pre[\s-]*ipo\s*(offer|shares)/i,
+ en:["Promises guaranteed IPO allotment or special 'institutional' access","Allotment cannot be guaranteed. 'Institutional account' and 'pre-IPO' pitches are widely used in fraud."],hi:["IPO अलॉटमेंट की गारंटी या विशेष 'इंस्टीट्यूशनल' एक्सेस का दावा","अलॉटमेंट की गारंटी नहीं होती। 'इंस्टीट्यूशनल अकाउंट' और 'प्री-IPO' वाले ऑफ़र ठगी में आम हैं।"]},
+{w:2,re:/(deposit|transfer|pay|send|जमा|भेजें)\s*(₹|rs\.?|inr)?\s*\d[\d,]*\s*(first|upfront|to\s*(unlock|withdraw|activate)|as\s*(tax|fee|charges))|(withdraw|निकासी)[^.\n]{0,40}(fee|tax|charge|शुल्क|टैक्स)|processing\s*fee|registration\s*fee|advance\s*(fee|payment)/i,
+ en:["Asks for upfront fees, tax or deposits to withdraw or join","Real platforms do not ask you to pay extra to take your own money out."],hi:["जुड़ने या पैसे निकालने के लिए अग्रिम फ़ीस/टैक्स/जमा माँग रहा है","असली प्लेटफ़ॉर्म आपके अपने पैसे निकालने के लिए अतिरिक्त भुगतान नहीं माँगते।"]},
+{w:2,re:/(crypto|bitcoin|usdt|forex|binary\s*option|क्रिप्टो)[^.\n]{0,60}(profit|income|earn|return|कमाएँ|मुनाफ़?ा)|(work\s*from\s*home|part[\s-]*time|task)[^.\n]{0,50}(earn|income|₹|rs)|like\s*(and|&)\s*(subscribe|follow)[^.\n]{0,40}(earn|₹)/i,
+ en:["Mixes unregulated crypto/forex or 'task' income with profit promises","Unregulated products and 'earn by tasks' offers are heavily used to trap first-time investors."],hi:["अनियमित क्रिप्टो/फ़ॉरेक्स या 'टास्क' कमाई के साथ मुनाफ़े का वादा","अनियमित प्रोडक्ट और 'टास्क से कमाई' वाले ऑफ़र नए निवेशकों को फँसाने में खूब इस्तेमाल होते हैं।"]},
+{w:2,re:/bit\.ly|tinyurl|cutt\.ly|t\.me\/|wa\.me\/|chat\.whatsapp\.com|https?:\/\/\S+\.(xyz|top|click|site|online|vip|icu|live)\b/i,
+ en:["Contains a shortened or suspicious link","Short links hide the real address. Fake sites copy real broker pages to steal money and logins."],hi:["छोटा या संदिग्ध लिंक है","छोटे लिंक असली पता छिपाते हैं। नकली साइटें असली ब्रोकर जैसी दिखकर पैसा और लॉगिन चुराती हैं।"]},
+{w:2,re:/(kyc|pan|aadhaar|demat)[^.\n]{0,50}(expire|update|block|suspend|verify|समाप्त|अपडेट|ब्लॉक)|account\s*(will\s*be\s*)?(blocked|suspended|frozen|closed)|खाता\s*(ब्लॉक|बंद|फ्रीज़)|sebi\s*(notice|penalty|case)[^.\n]{0,40}(pay|fine)/i,
+ en:["Threatens account block, KYC expiry or a fake legal notice","Fear tactics are used to make you click links or share details. Check by logging in on the official app/site you typed yourself."],hi:["खाता बंद होने, KYC समाप्ति या नकली नोटिस की धमकी","डर दिखाकर लिंक खुलवाए या जानकारी ली जाती है। ख़ुद टाइप करके आधिकारिक ऐप/साइट पर जाकर जाँचें।"]},
+{w:1,re:/unknown\s*number|\+\d{2}\s*\d{4,}|dear\s*(customer|investor|sir|madam)|आदरणीय\s*(ग्राहक|निवेशक)/i,
+ en:["Generic greeting from an unknown sender","Real firms usually address you by name and write from official channels."],hi:["अज्ञात भेजने वाले का सामान्य संबोधन","असली कंपनियाँ आमतौर पर नाम से संबोधित करती हैं और आधिकारिक माध्यम से लिखती हैं।"]}
+];
+const EXAMPLES={
+en:"Dear investor, join our VIP WhatsApp group https://wa.me/91XXXXXXXXXX. Sure shot multibagger call, buy above ₹120 target ₹300. Guaranteed 40% profit in 15 days, SEBI registered. Only 5 slots left, act now! Download our app: trading-pro.apk",
+hi:"आदरणीय निवेशक, हमारे VIP टेलीग्राम ग्रुप में जुड़ें। पक्का मुनाफ़ा, गारंटी 30% रिटर्न हर माह। सेबी पंजीकृत। आज ही निवेश करें, सीमित सीट! ऐप डाउनलोड करें और OTP बताएँ।"};
+
+// ---------- Logic ----------
+const $=id=>document.getElementById(id);let L="en",lastSpeak="";
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function analyse(txt){
+ const hits=R.filter(r=>r.re.test(txt));
+ const raw=hits.reduce((a,r)=>a+r.w,0);
+ // diminishing scale: ~10 raw points => 100
+ const score=Math.min(100,Math.round(100*(1-Math.exp(-raw/6))));
+ return{hits,score};
+}
+function render(){
+ const t=T[L],txt=$("msg").value.trim(),o=$("out");
+ if(!txt){o.innerHTML=`<div class="note">${t.empty}</div>`;return}
+ const{hits,score}=analyse(txt);
+ const lvl=score>=60?"high":score>=25?"mid":"low";
+ const col={high:"var(--hi)",mid:"var(--mid)",low:"var(--lo)"}[lvl];
+ const icon={high:"⛔",mid:"⚠️",low:"ℹ️"}[lvl];
+ let h=`<div class="verdict" style="border-color:${col}"><h2 style="color:${col}">${icon} ${t[lvl]}</h2>
+ <div>${t.score}: <b>${score}/100</b></div>
+ <div class="bar" role="img" aria-label="${score} of 100"><i style="width:${score}%;background:${col}"></i></div></div>`;
+ h+=`<h3>${t.why}</h3>`;
+ if(!hits.length)h+=`<div class="flag" style="border-left-color:var(--lo)">${t.none}</div>`;
+ hits.sort((a,b)=>b.w-a.w).forEach(r=>{const x=r[L];h+=`<div class="flag" style="border-left-color:${r.w>=3?'var(--hi)':'var(--mid)'}"><b>${x[0]}</b>${x[1]}</div>`});
+ h+=`<h3>${t.next}</h3><ul class="steps">${t.steps.map(s=>`<li>${s}</li>`).join("")}</ul>
+ <div class="note">${t.unc}</div><button id="spk">${t.listen}</button>`;
+ o.innerHTML=h;
+ lastSpeak=[t[lvl],t.score+" "+score,...hits.map(r=>r[L][0]),t.unc].join(". ");
+ $("spk").onclick=()=>{if(!("speechSynthesis" in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(lastSpeak);u.lang=L==="hi"?"hi-IN":"en-IN";speechSynthesis.speak(u)};
+}
+function setLang(l){
+ L=l;const t=T[l];document.documentElement.lang=l;
+ $("sub").textContent=t.sub;$("msg").placeholder=t.ph;$("lbl").textContent=t.ph;
+ $("go").textContent=t.go;$("mic").textContent=t.mic;$("ex").textContent=t.ex;$("clr").textContent=t.clr;
+ $("priv").textContent=t.priv;$("foot").textContent=t.foot;
+ if($("out").innerHTML)render();
+}
+$("lang").onchange=e=>setLang(e.target.value);
+$("go").onclick=render;
+$("clr").onclick=()=>{$("msg").value="";$("out").innerHTML="";speechSynthesis&&speechSynthesis.cancel()};
+$("ex").onclick=()=>{$("msg").value=EXAMPLES[L];render()};
+$("mic").onclick=()=>{
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){$("out").innerHTML=`<div class="note">${T[L].nomic}</div>`;return}
+ const r=new SR();r.lang=L==="hi"?"hi-IN":"en-IN";r.interimResults=false;
+ r.onresult=e=>{$("msg").value+=(" "+e.results[0][0].transcript).trim()+" "};
+ r.onerror=()=>{$("out").innerHTML=`<div class="note">${T[L].nomic}</div>`};
+ r.start();
+};
+setLang("en");
+</script>
+</body>
+</html>
