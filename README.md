@@ -1,8 +1,6 @@
-# Sachet – Investment Message Checker
+# SACHET
 
-**Built for SANGYAN Hackathon (IIT BHU × SEBI × NSDL)**
-**Tracks:** A – Digital Fraud & Scam Resilience · E – Misinformation & Content Literacy
-
+> Live demo: `<https://anushabannela20.github.io/SACHET/>`
 > Participant Name: `<ANUSHA BANNELA>`
 
 ## 1. The Problem
