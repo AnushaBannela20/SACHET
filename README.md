@@ -114,15 +114,8 @@ python3 -m http.server 8000
 
 **Output (summary):** High warning level. Flags include guaranteed returns, private group push, specific buy/target tip, claimed SEBI approval, urgency, and APK install request, each with an explanation and next steps.
 
-## 10. Limitations 
 
-- Detection is **rule-based**, not machine learning. It can miss scams phrased in new ways and can flag harmless messages that happen to contain trigger words.
-- Only English and Hindi (with Hinglish) are supported in this prototype.
-- Voice input depends on browser support; Hindi voice quality varies by device.
-- It has not been validated on a large labelled dataset yet.
-- It cannot check whether a phone number, link or registration number is genuine. It tells users how to verify independently.
-
-## 11. Roadmap and Scalability
+## 10. Roadmap and Scalability
 
 1. **More languages:** Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada. Only the pattern and explanation text changes.
 2. **Rules as open data:** Move rules into a community-maintained JSON file so regulators, investor associations and researchers can contribute.
@@ -132,10 +125,10 @@ python3 -m http.server 8000
 6. **Distribution:** WhatsApp-shareable link, investor-awareness campaigns, and possible integration with regulator and depository awareness channels.
 7. **Family mode:** A "send result to a trusted contact" option for elderly users.
 
-## 12. Disclaimer
+## 11. Disclaimer
 
 Sachet is an educational investor-protection prototype. It does not provide legal or financial advice and cannot guarantee that any message is genuine or fraudulent. Always verify through official channels: SEBI (sebi.gov.in), SEBI SCORES (scores.sebi.gov.in), the National Cyber Crime Portal (cybercrime.gov.in) or helpline 1930.
 
-## 13. Licence
+## 12. Licence
 
 MIT. See `LICENSE`.
