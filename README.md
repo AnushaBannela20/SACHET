@@ -1,11 +1,11 @@
-# Sachet 🛡️ – Investment Message Checker
+# Sachet – Investment Message Checker
 
 **Built for SANGYAN Hackathon (IIT BHU × SEBI × NSDL)**
 **Tracks:** A – Digital Fraud & Scam Resilience · E – Misinformation & Content Literacy
 
 > Participant Name: `<ANUSHA BANNELA>`
 
-## 1. The problem
+## 1. The Problem
 
 Retail investing in India is growing fast, especially among first-time investors in Tier-2 and Tier-3 cities. Many of them first meet "investing" through a forwarded WhatsApp or Telegram message, not through a broker. These messages follow repeatable fraud patterns:
 
@@ -17,7 +17,7 @@ Retail investing in India is growing fast, especially among first-time investors
 
 The victims are often people with limited financial or digital literacy, or elderly relatives, who are rushed into acting before they can verify anything. Existing tools are mostly English-only, require an account or an app install, or ask users to upload personal data.
 
-## 2. Who it is for
+## 2. Who it is for?
 
 | User                                       | Why Sachet helps |
 
@@ -26,7 +26,7 @@ The victims are often people with limited financial or digital literacy, or elde
 | Elderly investor or family member          | Large buttons, simple wording, "show this to a family member" step |
 | Young investor following social media tips | Learns which tricks tip-sellers use |
 
-## 3. What it does
+## 3. What it does?
 
 1. The user pastes a suspicious message (or speaks it).
 2. Sachet checks it against 14 known scam-pattern rules.
@@ -60,7 +60,7 @@ Bilingual explanation + next-step links + read-aloud (SpeechSynthesis)
 - **Scoring:** each rule has a weight from 1 to 4. Weights are summed and passed through a saturating curve so that several independent red flags raise the score quickly while a single weak flag does not. Verdict thresholds: below 25 = Low, 25–59 = Medium, 60 or above = High.
 - **Explainability:** every score is traceable to the exact rules that fired.
 
-## 5. Technology and third-party components
+## 5. Technology and Third-party components
 
 | Component | Use | Cost |
 |---|---|---|
@@ -71,7 +71,7 @@ Bilingual explanation + next-step links + read-aloud (SpeechSynthesis)
 
 **No external APIs, libraries, datasets, trackers or fonts are used.** Fonts fall back to system fonts, including system Devanagari fonts.
 
-## 6. Guardrail compliance
+## 6. Guardrail Compliance
 
 | Hackathon rule | How Sachet complies |
 |---|---|
@@ -122,7 +122,7 @@ python3 -m http.server 8000
 - It has not been validated on a large labelled dataset yet.
 - It cannot check whether a phone number, link or registration number is genuine. It tells users how to verify independently.
 
-## 11. Roadmap and scalability
+## 11. Roadmap and Scalability
 
 1. **More languages:** Tamil, Telugu, Bengali, Marathi, Gujarati, Kannada. Only the pattern and explanation text changes.
 2. **Rules as open data:** Move rules into a community-maintained JSON file so regulators, investor associations and researchers can contribute.
